@@ -9,13 +9,17 @@ import android.os.AsyncTask;
 import android.os.Bundle;
 import android.provider.MediaStore;
 import android.text.TextUtils;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.widget.Toast;
 import com.amazonaws.auth.BasicAWSCredentials;
 import com.amazonaws.services.s3.AmazonS3Client;
+import com.amazonaws.services.s3.model.ObjectListing;
 import com.amazonaws.services.s3.model.PutObjectRequest;
+import com.amazonaws.services.s3.model.S3Object;
+import com.amazonaws.services.s3.model.S3ObjectSummary;
 import com.jayway.amazon.R;
 import com.jayway.amazon.client.util.Constants;
 import com.jayway.amazon.client.content.Content;
@@ -27,8 +31,9 @@ import java.util.List;
 
 public class JayGram extends ListActivity {
 
-    private ProgressDialog dialog;
     private String mLatestUpload;
+
+    private ContentAdapter mContentAdapter;
 
     private static final int PHOTO_SELECTED = 1;
 
@@ -42,34 +47,12 @@ public class JayGram extends ListActivity {
 
         setContentView(R.layout.list_view);
 
-        List<Content> contentList = new ArrayList<Content>();
-        contentList.add(new Content(
-                R.drawable.img_20121020_101012,
-                "Jenny Nilsson",
-                "2012/10/20 10:10",
-                "På väg till kallbad" ));
-
-        contentList.add(new Content(
-                R.drawable.img_20121013_120559,
-                "Jenny Nilsson",
-                "2012/10/13 12:05",
-                "Höst höst" ));
-
-        contentList.add(new Content(
-                R.drawable.img_20120708_095557,
-                "Jenny Nilsson",
-                "2012/07/08 09:55",
-                "Mums" ));
-
-        contentList.add(new Content(
-                R.drawable.img_20120704_170415,
-                "Jenny Nilsson",
-                "2012/07/04 17:04",
-                "Jordgubbsplantan blommar!" ));
+        mContentAdapter = new ContentAdapter(getApplicationContext(), new ArrayList<Content>());
+        setListAdapter(mContentAdapter);
 
 
-        ContentAdapter contentAdapter = new ContentAdapter(getApplicationContext(), contentList);
-        setListAdapter(contentAdapter);
+        new GetBucketInfoTask().execute();
+
     }
 
 
@@ -93,6 +76,7 @@ public class JayGram extends ListActivity {
                 if (!TextUtils.isEmpty(mLatestUpload)){
                     new ShowInBrowserTask().execute(mLatestUpload);
                 } else {
+                    new GetBucketInfoTask().execute();
                     Toast.makeText(this, "No uploads has been made", Toast.LENGTH_LONG).show();
                 }
                 return true;
@@ -158,6 +142,11 @@ public class JayGram extends ListActivity {
                     s3Client.createBucket(Constants.getPictureBucket());
                 }
 
+                ObjectListing objects = s3Client.listObjects(Constants.getPictureBucket());
+                for (S3ObjectSummary summery :objects.getObjectSummaries() ){
+                    Log.d("JayGram", summery.getStorageClass() + " " + summery.getOwner().getDisplayName());
+                }
+
                 String fileName = filePath.substring(filePath.lastIndexOf("/") + 1 );
 
                 // Content type is determined by file extension.
@@ -181,6 +170,7 @@ public class JayGram extends ListActivity {
             }
             if (result) {
                 Toast.makeText(JayGram.this, "Upload was successful", Toast.LENGTH_LONG).show();
+                new GetBucketInfoTask().execute();
             } else {
                 Toast.makeText(JayGram.this, "Upload failed", Toast.LENGTH_LONG).show();
             }
@@ -195,21 +185,10 @@ public class JayGram extends ListActivity {
 
             try {
                 String fileName = strings[0];
-                // Ensure that the image will be treated as such.
-                // ResponseHeaderOverrides override = new
-                // ResponseHeaderOverrides();
-                // override.setContentType("image/jpeg");
 
-                // Generate the presigned URL.
-
-                // Added an hour's worth of milliseconds to the current time.
                 Date expirationDate = new Date(
                         System.currentTimeMillis() + 3600000);
-                // GeneratePresignedUrlRequest urlRequest = new
-                // GeneratePresignedUrlRequest(
-                // Constants.getPictureBucket(), Constants.PICTURE_NAME);
-                // urlRequest.setExpiration(expirationDate);
-                // urlRequest.setResponseHeaders(override);
+
 
                 URL url = s3Client.generatePresignedUrl(
                         Constants.getPictureBucket(), fileName,
@@ -233,4 +212,35 @@ public class JayGram extends ListActivity {
         }
     }
 
+    private class GetBucketInfoTask extends AsyncTask<String, Void, List<Content>> {
+
+        Uri uri = null;
+
+        protected List<Content> doInBackground(String... strings) {
+            List<Content> contents = new ArrayList<Content>();
+            try {
+                if (s3Client.doesBucketExist(Constants.getPictureBucket())){
+                    ObjectListing objects = s3Client.listObjects(Constants.getPictureBucket());
+                    for (S3ObjectSummary summary :objects.getObjectSummaries() ){
+                        contents.add(new Content(
+                                s3Client.generatePresignedUrl(
+                                        Constants.getPictureBucket(), summary.getKey(),
+                                        new Date(System.currentTimeMillis() + 3600000)),
+                                summary.getOwner().getDisplayName(),
+                                summary.getLastModified().toLocaleString(),
+                                "" ));
+                    }
+                }
+            } catch (Exception exception) {
+
+            }
+            return contents;
+        }
+
+        @Override
+        protected void onPostExecute(List<Content> contents) {
+            super.onPostExecute(contents);
+            mContentAdapter.addAll(contents);
+        }
+    }
 }

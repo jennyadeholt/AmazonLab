@@ -1,6 +1,9 @@
 package com.jayway.amazon.client.content;
 
 import android.graphics.drawable.Drawable;
+import android.net.Uri;
+
+import java.net.URL;
 
 /**
  * Created with IntelliJ IDEA.
@@ -11,13 +14,13 @@ import android.graphics.drawable.Drawable;
  */
 public class Content {
 
-    public int url;
+    public URL url;
     public String name;
     public String date;
     public String text;
 
 
-    public Content(int url, String name, String date, String text) {
+    public Content(URL url, String name, String date, String text) {
         this.url = url;
         this.name = name;
         this.date = date;
