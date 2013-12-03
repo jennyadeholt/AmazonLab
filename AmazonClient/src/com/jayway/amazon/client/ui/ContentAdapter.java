@@ -1,6 +1,5 @@
 package com.jayway.amazon.client.ui;
 
-import android.app.ListActivity;
 import android.content.Context;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -9,9 +8,8 @@ import android.widget.ArrayAdapter;
 import android.widget.ImageView;
 import android.widget.TextView;
 import com.jayway.amazon.R;
-import com.jayway.amazon.client.Content;
+import com.jayway.amazon.client.content.Content;
 
-import java.util.ArrayList;
 import java.util.List;
 
 /**

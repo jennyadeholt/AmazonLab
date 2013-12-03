@@ -1,4 +1,4 @@
-package com.jayway.amazon.client;
+package com.jayway.amazon.client.content;
 
 import android.graphics.drawable.Drawable;
 
