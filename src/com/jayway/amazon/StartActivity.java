@@ -14,6 +14,7 @@ import android.provider.MediaStore;
 import android.view.View;
 import android.widget.Button;
 
+import android.widget.Toast;
 import com.amazonaws.auth.BasicAWSCredentials;
 import com.amazonaws.services.s3.AmazonS3Client;
 import com.amazonaws.services.s3.model.PutObjectRequest;
@@ -71,7 +72,7 @@ public class StartActivity extends Activity {
         }
     }
 
-    private class ShowPhotoTask extends AsyncTask<Uri, Void, String> {
+    private class ShowPhotoTask extends AsyncTask<Uri, Void, Boolean> {
 
         ProgressDialog dialog;
 
@@ -84,10 +85,11 @@ public class StartActivity extends Activity {
             dialog.show();
         }
 
-        protected String doInBackground(Uri... uris) {
+        protected Boolean doInBackground(Uri... uris) {
+            boolean result = true;
 
             if (uris == null || uris.length != 1) {
-                return null;
+                return false;
             }
 
             // The file location of the image selected.
@@ -118,14 +120,22 @@ public class StartActivity extends Activity {
                         new java.io.File(filePath));
                 s3Client.putObject(por);
             } catch (Exception exception) {
-                result = "Failure";
+                result = false;
             }
 
             return result;
         }
 
-        protected void onPostExecute(String result) {
-            // TODO create toast with result
+        protected void onPostExecute(Boolean result) {
+            if (dialog != null && dialog.isShowing()){
+                dialog.dismiss();
+
+            }
+            if (result) {
+                Toast.makeText(StartActivity.this, "Upload was successful", Toast.LENGTH_LONG).show();
+            } else {
+                Toast.makeText(StartActivity.this, "Upload failed", Toast.LENGTH_LONG).show();
+            }
         }
     }
 
