@@ -19,6 +19,7 @@ import com.amazonaws.auth.BasicAWSCredentials;
 import com.amazonaws.services.s3.AmazonS3Client;
 import com.amazonaws.services.s3.model.PutObjectRequest;
 import com.jayway.amazon.R;
+import com.jayway.amazon.client.ui.JayGram;
 
 public class StartActivity extends Activity {
 
@@ -52,7 +53,7 @@ public class StartActivity extends Activity {
         showInBrowserButton.setOnClickListener(new View.OnClickListener() {
 
             public void onClick(View v) {
-                new ShowInBrowserTask().execute();
+                startActivity(new Intent(StartActivity.this, JayGram.class));
             }
         });
     }
@@ -180,7 +181,6 @@ public class StartActivity extends Activity {
         protected void onPostExecute(Uri uri) {
 
             if (uri != null) {
-                // Display in Browser.
                 startActivity(new Intent(Intent.ACTION_VIEW, uri));
             }
         }
