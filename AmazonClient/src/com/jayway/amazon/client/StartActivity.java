@@ -1,4 +1,4 @@
-package com.jayway.amazon;
+package com.jayway.amazon.client;
 
 import java.net.URL;
 import java.util.Date;
@@ -18,6 +18,7 @@ import android.widget.Toast;
 import com.amazonaws.auth.BasicAWSCredentials;
 import com.amazonaws.services.s3.AmazonS3Client;
 import com.amazonaws.services.s3.model.PutObjectRequest;
+import com.jayway.amazon.R;
 
 public class StartActivity extends Activity {
 
