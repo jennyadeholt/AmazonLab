@@ -103,13 +103,18 @@ public class StartActivity extends Activity {
             String filePath = cursor.getString(columnIndex);
             cursor.close();
 
+
             // Put the image data into S3.
             try {
-                s3Client.createBucket(Constants.getPictureBucket());
+                if (!s3Client.doesBucketExist(Constants.getPictureBucket())){
+                    s3Client.createBucket(Constants.getPictureBucket());
+                }
+
+                String fileName = filePath.substring(filePath.lastIndexOf("/") + 1 );
 
                 // Content type is determined by file extension.
                 PutObjectRequest por = new PutObjectRequest(
-                        Constants.getPictureBucket(), Constants.PICTURE_NAME,
+                        Constants.getPictureBucket(), fileName,
                         new java.io.File(filePath));
                 s3Client.putObject(por);
             } catch (Exception exception) {

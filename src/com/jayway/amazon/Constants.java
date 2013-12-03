@@ -34,7 +34,7 @@ public class Constants {
 //	fefbc481de4d04629f192e86badd2972d4f8fe2652634794717259993307deed
 
 	public static String getPictureBucket() {
-		return ("my-unique-name" + ACCESS_KEY_ID + PICTURE_BUCKET).toLowerCase(Locale.US);
+		return (ACCESS_KEY_ID + PICTURE_BUCKET).toLowerCase(Locale.US);
 	}
 	
 }
