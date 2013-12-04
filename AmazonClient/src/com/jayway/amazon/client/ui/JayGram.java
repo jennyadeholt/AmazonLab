@@ -18,11 +18,10 @@ import com.amazonaws.auth.BasicAWSCredentials;
 import com.amazonaws.services.s3.AmazonS3Client;
 import com.amazonaws.services.s3.model.ObjectListing;
 import com.amazonaws.services.s3.model.PutObjectRequest;
-import com.amazonaws.services.s3.model.S3Object;
 import com.amazonaws.services.s3.model.S3ObjectSummary;
 import com.jayway.amazon.R;
-import com.jayway.amazon.client.util.Constants;
 import com.jayway.amazon.client.content.Content;
+import com.jayway.amazon.client.util.Constants;
 
 import java.net.URL;
 import java.util.ArrayList;
@@ -143,10 +142,6 @@ public class JayGram extends ListActivity {
                 }
 
                 ObjectListing objects = s3Client.listObjects(Constants.getPictureBucket());
-                for (S3ObjectSummary summery :objects.getObjectSummaries() ){
-                    Log.d("JayGram", summery.getStorageClass() + " " + summery.getOwner().getDisplayName());
-                }
-
                 String fileName = filePath.substring(filePath.lastIndexOf("/") + 1 );
 
                 // Content type is determined by file extension.
@@ -222,7 +217,10 @@ public class JayGram extends ListActivity {
                 if (s3Client.doesBucketExist(Constants.getPictureBucket())){
                     ObjectListing objects = s3Client.listObjects(Constants.getPictureBucket());
                     for (S3ObjectSummary summary :objects.getObjectSummaries() ){
+                        summary.getETag();
+
                         contents.add(new Content(
+                                summary.getETag(),
                                 s3Client.generatePresignedUrl(
                                         Constants.getPictureBucket(), summary.getKey(),
                                         new Date(System.currentTimeMillis() + 3600000)),
@@ -240,7 +238,7 @@ public class JayGram extends ListActivity {
         @Override
         protected void onPostExecute(List<Content> contents) {
             super.onPostExecute(contents);
-            mContentAdapter.addAll(contents);
+            mContentAdapter.updateContent(contents);
         }
     }
 }
